@@ -1,0 +1,1103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FoodHub - Digital Menu & Ordering</title>
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- QRCode.js Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    
+    <style>
+        :root {
+            --primary-orange: #ff6b1a;
+            --primary-hover: #e0550b;
+            --bg-light: #f8f9fa;
+            --card-bg: #ffffff;
+            --text-dark: #1e293b;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+            --tag-green-bg: #dcfce7;
+            --tag-green-text: #166534;
+            --tag-red-bg: #fee2e2;
+            --tag-red-text: #991b1b;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-light);
+            color: var(--text-dark);
+            padding-bottom: 80px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 24px 16px;
+        }
+
+        /* Header */
+        .brand-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .brand-icon {
+            background-color: var(--primary-orange);
+            color: #fff;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+
+        .brand-text h1 {
+            font-size: 22px;
+            font-weight: 700;
+            line-height: 1.1;
+        }
+
+        .brand-text p {
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        /* Search Bar */
+        .search-container {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .search-container i {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 12px 16px 12px 44px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 14px;
+            outline: none;
+            background: #fff;
+        }
+
+        .search-input:focus {
+            border-color: var(--primary-orange);
+        }
+
+        /* Navigation Switch */
+        .top-nav {
+            display: flex;
+            background-color: #eee;
+            border-radius: 12px;
+            padding: 4px;
+            margin-bottom: 20px;
+        }
+
+        .top-nav-btn {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            background: transparent;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-muted);
+            cursor: pointer;
+            border-radius: 8px;
+            transition: background 0.2s;
+        }
+
+        .top-nav-btn.active {
+            background-color: #fff;
+            color: var(--text-dark);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        /* Category Filter Tags */
+        .categories {
+            display: flex;
+            gap: 10px;
+            overflow-x: auto;
+            margin-bottom: 28px;
+            padding-bottom: 4px;
+        }
+
+        .category-btn {
+            padding: 8px 18px;
+            border: 1px solid var(--border-color);
+            background-color: #fff;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-dark);
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .category-btn.active {
+            background-color: var(--primary-orange);
+            color: #fff;
+            border-color: var(--primary-orange);
+        }
+
+        /* Grid Layout */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 20px;
+        }
+
+        .no-results {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 40px;
+            color: var(--text-muted);
+            font-size: 16px;
+            display: none;
+        }
+
+        /* Card Component */
+        .card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .card-img-container {
+            position: relative;
+            height: 180px;
+            width: 100%;
+        }
+
+        .card-img-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .popular-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: #ef4444;
+            color: #fff;
+            font-size: 11px;
+            font-weight: 600;
+            padding: 4px 10px;
+            border-radius: 12px;
+        }
+
+        .tags-container {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            display: flex;
+            gap: 6px;
+        }
+
+        .tag {
+            font-size: 11px;
+            font-weight: 600;
+            padding: 3px 8px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .tag-veg {
+            background-color: var(--tag-green-bg);
+            color: var(--tag-green-text);
+        }
+
+        .tag-spicy {
+            background-color: var(--tag-red-bg);
+            color: var(--tag-red-text);
+        }
+
+        .card-body {
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+        }
+
+        .card-title {
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+
+        .card-desc {
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-bottom: 16px;
+            line-height: 1.4;
+            flex-grow: 1;
+        }
+
+        .card-price {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--primary-orange);
+            margin-bottom: 12px;
+        }
+
+        .add-to-cart-btn {
+            width: 100%;
+            padding: 10px;
+            background-color: var(--primary-orange);
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            transition: background 0.2s;
+        }
+
+        .add-to-cart-btn:hover {
+            background-color: var(--primary-hover);
+        }
+
+        /* Floating Cart */
+        .floating-cart {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background-color: var(--primary-orange);
+            color: #fff;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 24px;
+            font-size: 14px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 12px rgba(255, 107, 26, 0.4);
+            cursor: pointer;
+            z-index: 10;
+            transition: transform 0.2s;
+        }
+
+        .floating-cart:hover {
+            transform: translateY(-2px);
+        }
+
+        .cart-badge {
+            background-color: #fff;
+            color: var(--primary-orange);
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        /* Cart Overlay Sidebar */
+        .cart-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            justify-content: flex-end;
+            z-index: 100;
+        }
+
+        .cart-overlay.active {
+            display: flex;
+        }
+
+        .cart-sidebar {
+            width: 100%;
+            max-width: 400px;
+            background-color: #fff;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            box-shadow: -2px 0 10px rgba(0,0,0,0.1);
+        }
+
+        .cart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 12px;
+            margin-bottom: 16px;
+        }
+
+        .close-cart {
+            background: none;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            color: var(--text-muted);
+        }
+
+        .cart-items {
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .cart-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            background-color: var(--bg-light);
+            border-radius: 8px;
+        }
+
+        .cart-item-info h4 {
+            font-size: 14px;
+        }
+
+        .cart-item-info p {
+            font-size: 12px;
+            color: var(--primary-orange);
+            font-weight: 600;
+        }
+
+        .cart-item-controls {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .cart-item-controls button {
+            width: 24px;
+            height: 24px;
+            border-radius: 4px;
+            border: 1px solid var(--border-color);
+            background: #fff;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .empty-cart-msg {
+            text-align: center;
+            color: var(--text-muted);
+            margin-top: 40px;
+            font-size: 14px;
+        }
+
+        .cart-footer {
+            border-top: 1px solid var(--border-color);
+            padding-top: 16px;
+            margin-top: 16px;
+        }
+
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+
+        .summary-row.total {
+            font-weight: 700;
+            font-size: 16px;
+            color: var(--text-dark);
+            margin-top: 12px;
+        }
+
+        .checkout-btn {
+            width: 100%;
+            padding: 12px;
+            background-color: var(--primary-orange);
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 12px;
+        }
+
+        .checkout-btn:hover {
+            background-color: var(--primary-hover);
+        }
+
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 200;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal-card {
+            background: #fff;
+            border-radius: 16px;
+            width: 90%;
+            max-width: 420px;
+            padding: 24px;
+            position: relative;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+            text-align: center;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            background: none;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            color: var(--text-muted);
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .modal-subtitle {
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-bottom: 20px;
+        }
+
+        .qr-wrapper {
+            background: #f8f9fa;
+            border: 1px dashed var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 16px;
+        }
+
+        #qrcode img {
+            margin: 0 auto;
+            border-radius: 8px;
+        }
+
+        .qr-amount {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--primary-orange);
+            margin-top: 12px;
+        }
+
+        .pay-instructions {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-bottom: 20px;
+        }
+
+        .confirm-pay-btn {
+            width: 100%;
+            padding: 12px;
+            background-color: #10b981;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .confirm-pay-btn:hover {
+            background-color: #059669;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- Header -->
+        <header class="brand-header">
+            <div class="brand-icon">
+                <i class="fa-solid fa-utensils"></i>
+            </div>
+            <div class="brand-text">
+                <h1>FoodHub</h1>
+                <p>Digital Menu & Ordering</p>
+            </div>
+        </header>
+
+        <!-- Search Bar -->
+        <div class="search-container">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" id="searchInput" class="search-input" placeholder="Search food or drinks...">
+        </div>
+
+        <!-- Top Navigation -->
+        <nav class="top-nav">
+            <button class="top-nav-btn active">Menu</button>
+            <button class="top-nav-btn" id="navOrdersBtn">My Orders (<span class="cart-count">0</span>)</button>
+        </nav>
+
+        <!-- Category Filters -->
+        <div class="categories">
+            <button class="category-btn active" data-category="All">All</button>
+            <button class="category-btn" data-category="Appetizers">Appetizers</button>
+            <button class="category-btn" data-category="Main Course">Main Course</button>
+            <button class="category-btn" data-category="Desserts">Desserts</button>
+            <button class="category-btn" data-category="Beverages">Beverages</button>
+            <button class="category-btn" data-category="Specials">Specials</button>
+        </div>
+
+        <!-- Food & Drinks Grid -->
+        <main class="grid" id="foodGrid">
+            
+            <!-- Appetizers -->
+            <div class="card" data-id="1" data-category="Appetizers" data-title="Bruschetta" data-price="7.99">
+                <div class="card-img-container">
+                    <img src="https://images.unsplash.com/photo-1572656631137-7935297eff55?auto=format&fit=crop&w=500&q=80" alt="Bruschetta">
+                    <div class="tags-container">
+                        <span class="tag tag-veg"><i class="fa-solid fa-leaf"></i> Veg</span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <h2 class="card-title">Bruschetta</h2>
+                    <p class="card-desc">Toasted sourdough topped with diced tomatoes, garlic, basil, and olive oil</p>
+                    <div class="card-price">$7.99</div>
+                    <button class="add-to-cart-btn"><i class="fa-solid fa-plus"></i> Add to Cart</button>
+                </div>
+            </div>
+
+            <div class="card" data-id="2" data-category="Appetizers" data-title="Crispy Calamari" data-price="11.99">
+                <div class="card-img-container">
+                    <img src="https://images.unsplash.com/photo-1599488615731-7e5c2823ff28?auto=format&fit=crop&w=500&q=80" alt="Crispy Calamari">
+                </div>
+                <div class="card-body">
+                    <h2 class="card-title">Crispy Calamari</h2>
+                    <p class="card-desc">Golden fried squid rings served with tangy marinara sauce and lemon</p>
+                    <div class="card-price">$11.99</div>
+                    <button class="add-to-cart-btn"><i class="fa-solid fa-plus"></i> Add to Cart</button>
+                </div>
+            </div>
+
+            <div class="card" data-id="3" data-category="Appetizers" data-title="Caesar Salad" data-price="9.99">
+                <div class="card-img-container">
+                    <img src="https://images.unsplash.com/photo-1546793665-c74683f339c1?auto=format&fit=crop&w=500&q=80" alt="Caesar Salad">
+                    <div class="tags-container">
+                        <span class="tag tag-veg"><i class="fa-solid fa-leaf"></i> Veg</span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <h2 class="card-title">Caesar Salad</h2>
+                    <p class="card-desc">Crispy romaine lettuce, parmesan cheese, croutons, and Caesar dressing</p>
+                    <div class="card-price">$9.99</div>
+                    <button class="add-to-cart-btn"><i class="fa-solid fa-plus"></i> Add to Cart</button>
+                </div>
+            </div>
+
+            <!-- Main Course -->
+            <div class="card" data-id="4" data-category="Main Course" data-title="Margherita Pizza" data-price="14.99">
+                <div class="card-img-container">
+                    <img src="https://images.unsplash.com/photo-1604382354936-07c5d9983bd3?auto=format&fit=crop&w=500&q=80" alt="Margherita Pizza">
+                    <span class="popular-badge">Popular</span>
+                    <div class="tags-container">
+                        <span class="tag tag-veg"><i class="fa-solid fa-leaf"></i> Veg</span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <h2 class="card-title">Margherita Pizza</h2>
+                    <p class="card-desc">Classic Italian pizza with fresh mozzarella, basil, and tomato sauce</p>
+                    <div class="card-price">$14.99</div>
+                    <button class="add-to-cart-btn"><i class="fa-solid fa-plus"></i> Add to Cart</button>
+                </div>
+            </div>
+
+            <div class="card" data-id="5" data-category="Main Course" data-title="Grilled Salmon" data-price="24.99">
+                <div class="card-img-container">
+                    <img src="https://images.unsplash.com/photo-1467003909585-2f8a72700288?auto=format&fit=crop&w=500&q=80" alt="Grilled Salmon">
+                    <span class="popular-badge">Popular</span>
+                </div>
+                <div class="card-body">
+                    <h2 class="card-title">Grilled Salmon</h2>
+                    <p class="card-desc">Fresh Atlantic salmon with lemon butter sauce and seasonal vegetables</p>
+                    <div class="card-price">$24.99</div>
+                    <button class="add-to-cart-btn"><i class="fa-solid fa-plus"></i> Add to Cart</button>
+                </div>
+            </div>
+
+            <div class="card" data-id="6" data-category="Main Course" data-title="Beef Burger" data-price="16.99">
+                <div class="card-img-container">
+                    <img src="https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=500&q=80" alt="Beef Burger">
+                    <span class="popular-badge">Popular</span>
+                </div>
+                <div class="card-body">
+                    <h2 class="card-title">Beef Burger</h2>
+                    <p class="card-desc">Juicy beef patty with lettuce, tomato, cheddar cheese, and special sauce</p>
+                    <div class="card-price">$16.99</div>
+                    <button class="add-to-cart-btn"><i class="fa-solid fa-plus"></i> Add to Cart</button>
+                </div>
+            </div>
+
+            <div class="card" data-id="7" data-category="Main Course" data-title="Thai Green Curry" data-price="18.99">
+                <div class="card-img-container">
+                    <img src="https://images.unsplash.com/photo-1455619452474-d2be8b1e70cd?auto=format&fit=crop&w=500&q=80" alt="Thai Green Curry">
+                    <div class="tags-container">
+                        <span class="tag tag-veg"><i class="fa-solid fa-leaf"></i> Veg</span>
+                        <span class="tag tag-spicy"><i class="fa-solid fa-pepper-hot"></i> Spicy</span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <h2 class="card-title">Thai Green Curry</h2>
+                    <p class="card-desc">Spicy coconut curry with fresh vegetables and jasmine rice</p>
+                    <div class="card-price">$18.99</div>
+                    <button class="add-to-cart-btn"><i class="fa-solid fa-plus"></i> Add to Cart</button>
+                </div>
+            </div>
+
+            <!-- Desserts -->
+            <div class="card" data-id="8" data-category="Desserts" data-title="Chocolate Lava Cake" data-price="8.99">
+                <div class="card-img-container">
+                    <img src="https://images.unsplash.com/photo-1606313564200-e75d5e30476c?auto=format&fit=crop&w=500&q=80" alt="Chocolate Lava Cake">
+                    <span class="popular-badge">Popular</span>
+                    <div class="tags-container">
+                        <span class="tag tag-veg"><i class="fa-solid fa-leaf"></i> Veg</span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <h2 class="card-title">Chocolate Lava Cake</h2>
+                    <p class="card-desc">Warm chocolate cake with a molten center, served with vanilla ice cream</p>
+                    <div class="card-price">$8.99</div>
+                    <button class="add-to-cart-btn"><i class="fa-solid fa-plus"></i> Add to Cart</button>
+                </div>
+            </div>
+
+            <div class="card" data-id="9" data-category="Desserts" data-title="NY Cheesecake" data-price="7.49">
+                <div class="card-img-container">
+                    <img src="https://images.unsplash.com/photo-1533134242443-d4fd215305ad?auto=format&fit=crop&w=500&q=80" alt="NY Cheesecake">
+                    <div class="tags-container">
+                        <span class="tag tag-veg"><i class="fa-solid fa-leaf"></i> Veg</span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <h2 class="card-title">NY Cheesecake</h2>
+                    <p class="card-desc">Rich and creamy cheesecake with a graham cracker crust and strawberry glaze</p>
+                    <div class="card-price">$7.49</div>
+                    <button class="add-to-cart-btn"><i class="fa-solid fa-plus"></i> Add to Cart</button>
+                </div>
+            </div>
+
+            <div class="card" data-id="10" data-category="Desserts" data-title="Tiramisu" data-price="8.49">
+                <div class="card-img-container">
+                    <img src="https://images.unsplash.com/photo-1571877227200-a0d98ea607e9?auto=format&fit=crop&w=500&q=80" alt="Tiramisu">
+                    <div class="tags-container">
+                        <span class="tag tag-veg"><i class="fa-solid fa-leaf"></i> Veg</span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <h2 class="card-title">Tiramisu</h2>
+                    <p class="card-desc">Classic Italian dessert layered with espresso-soaked ladyfingers and mascarpone</p>
+                    <div class="card-price">$8.49</div>
+                    <button class="add-to-cart-btn"><i class="fa-solid fa-plus"></i> Add to Cart</button>
+                </div>
+            </div>
+
+            <!-- Beverages -->
+            <div class="card" data-id="11" data-category="Beverages" data-title="Mango Smoothie" data-price="5.99">
+                <div class="card-img-container">
+                    <img src="https://images.unsplash.com/photo-1553530666-ba11a7da3888?auto=format&fit=crop&w=500&q=80" alt="Mango Smoothie">
+                    <div class="tags-container">
+                        <span class="tag tag-veg"><i class="fa-solid fa-leaf"></i> Vegan</span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <h2 class="card-title">Mango Smoothie</h2>
+                    <p class="card-desc">Fresh tropical mango blended with coconut water and honey</p>
+                    <div class="card-price">$5.99</div>
+                    <button class="add-to-cart-btn"><i class="fa-solid fa-plus"></i> Add to Cart</button>
+                </div>
+            </div>
+
+            <div class="card" data-id="12" data-category="Beverages" data-title="Iced Matcha Latte" data-price="4.99">
+                <div class="card-img-container">
+                    <img src="https://images.unsplash.com/photo-1536256263959-770b48d82b0a?auto=format&fit=crop&w=500&q=80" alt="Iced Matcha Latte">
+                    <div class="tags-container">
+                        <span class="tag tag-veg"><i class="fa-solid fa-leaf"></i> Veg</span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <h2 class="card-title">Iced Matcha Latte</h2>
+                    <p class="card-desc">Japanese ceremonial grade matcha combined with oat milk and ice</p>
+                    <div class="card-price">$4.99</div>
+                    <button class="add-to-cart-btn"><i class="fa-solid fa-plus"></i> Add to Cart</button>
+                </div>
+            </div>
+
+            <div class="card" data-id="13" data-category="Beverages" data-title="Fresh Lemon Mint" data-price="3.99">
+                <div class="card-img-container">
+                    <img src="https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?auto=format&fit=crop&w=500&q=80" alt="Fresh Lemon Mint">
+                    <div class="tags-container">
+                        <span class="tag tag-veg"><i class="fa-solid fa-leaf"></i> Vegan</span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <h2 class="card-title">Fresh Lemon Mint</h2>
+                    <p class="card-desc">Refreshing squeezed lemon juice infused with crushed fresh mint leaves</p>
+                    <div class="card-price">$3.99</div>
+                    <button class="add-to-cart-btn"><i class="fa-solid fa-plus"></i> Add to Cart</button>
+                </div>
+            </div>
+
+            <!-- Specials -->
+            <div class="card" data-id="14" data-category="Specials" data-title="Chef's Truffle Pasta" data-price="22.99">
+                <div class="card-img-container">
+                    <img src="https://images.unsplash.com/photo-1551183053-bf91a1d81141?auto=format&fit=crop&w=500&q=80" alt="Truffle Pasta">
+                    <span class="popular-badge">Special</span>
+                    <div class="tags-container">
+                        <span class="tag tag-veg"><i class="fa-solid fa-leaf"></i> Veg</span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <h2 class="card-title">Chef's Truffle Pasta</h2>
+                    <p class="card-desc">Handmade fettuccine with black truffle cream sauce and shaved parmesan</p>
+                    <div class="card-price">$22.99</div>
+                    <button class="add-to-cart-btn"><i class="fa-solid fa-plus"></i> Add to Cart</button>
+                </div>
+            </div>
+
+            <div class="card" data-id="15" data-category="Specials" data-title="BBQ Ribs Rack" data-price="26.99">
+                <div class="card-img-container">
+                    <img src="https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=500&q=80" alt="BBQ Ribs">
+                    <span class="popular-badge">Special</span>
+                </div>
+                <div class="card-body">
+                    <h2 class="card-title">BBQ Ribs Rack</h2>
+                    <p class="card-desc">Slow-cooked pork ribs glazed in smoky house BBQ sauce with fries</p>
+                    <div class="card-price">$26.99</div>
+                    <button class="add-to-cart-btn"><i class="fa-solid fa-plus"></i> Add to Cart</button>
+                </div>
+            </div>
+
+            <div class="card" data-id="16" data-category="Specials" data-title="Dragon Fruit Cocktail" data-price="9.99">
+                <div class="card-img-container">
+                    <img src="https://images.unsplash.com/photo-1551024709-8f23befc6f87?auto=format&fit=crop&w=500&q=80" alt="Dragon Fruit Drink">
+                    <span class="popular-badge">Special</span>
+                </div>
+                <div class="card-body">
+                    <h2 class="card-title">Dragon Fruit Cocktail</h2>
+                    <p class="card-desc">Exotic red dragon fruit drink with lime juice, sparkling water, and rum</p>
+                    <div class="card-price">$9.99</div>
+                    <button class="add-to-cart-btn"><i class="fa-solid fa-plus"></i> Add to Cart</button>
+                </div>
+            </div>
+
+            <div class="no-results" id="noResults">
+                <i class="fa-solid fa-utensils" style="font-size: 32px; margin-bottom: 8px;"></i>
+                <p>No food or drink items match your search.</p>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Floating Cart Button -->
+    <button class="floating-cart" id="floatingCartBtn">
+        <i class="fa-solid fa-cart-shopping"></i> Cart
+        <span class="cart-badge cart-count">0</span>
+    </button>
+
+    <!-- Slide-Out Cart Overlay -->
+    <div class="cart-overlay" id="cartOverlay">
+        <div class="cart-sidebar">
+            <div class="cart-header">
+                <h3>Your Order</h3>
+                <button class="close-cart" id="closeCartBtn">&times;</button>
+            </div>
+            
+            <div class="cart-items" id="cartItemsContainer">
+                <div class="empty-cart-msg">Your cart is empty</div>
+            </div>
+
+            <div class="cart-footer">
+                <div class="summary-row">
+                    <span>Subtotal</span>
+                    <span id="subtotalVal">$0.00</span>
+                </div>
+                <div class="summary-row">
+                    <span>Tax (8%)</span>
+                    <span id="taxVal">$0.00</span>
+                </div>
+                <div class="summary-row total">
+                    <span>Total</span>
+                    <span id="totalVal">$0.00</span>
+                </div>
+                <button class="checkout-btn" id="checkoutBtn">Checkout</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- QR Code Checkout Modal -->
+    <div class="modal-overlay" id="checkoutModal">
+        <div class="modal-card">
+            <button class="modal-close" id="closeModalBtn">&times;</button>
+            <h3 class="modal-title">Scan to Pay</h3>
+            <p class="modal-subtitle">Use your banking app to scan the QR code</p>
+            
+            <div class="qr-wrapper">
+                <div id="qrcode"></div>
+                <div class="qr-amount" id="qrTotalVal">$0.00</div>
+            </div>
+            
+            <p class="pay-instructions">Order #<span id="orderId"></span> • Total includes taxes</p>
+            <button class="confirm-pay-btn" id="confirmPayBtn">I Have Paid</button>
+        </div>
+    </div>
+
+    <script>
+        // State Management
+        let cart = [];
+        let qrCodeInstance = null;
+        let selectedCategory = 'All';
+
+        // DOM Elements
+        const searchInput = document.getElementById('searchInput');
+        const categoryBtns = document.querySelectorAll('.category-btn');
+        const cards = document.querySelectorAll('.card');
+        const noResults = document.getElementById('noResults');
+        const floatingCartBtn = document.getElementById('floatingCartBtn');
+        const navOrdersBtn = document.getElementById('navOrdersBtn');
+        const closeCartBtn = document.getElementById('closeCartBtn');
+        const cartOverlay = document.getElementById('cartOverlay');
+        const cartItemsContainer = document.getElementById('cartItemsContainer');
+        const cartCountElems = document.querySelectorAll('.cart-count');
+        const subtotalVal = document.getElementById('subtotalVal');
+        const taxVal = document.getElementById('taxVal');
+        const totalVal = document.getElementById('totalVal');
+        
+        // Modal Elements
+        const checkoutBtn = document.getElementById('checkoutBtn');
+        const checkoutModal = document.getElementById('checkoutModal');
+        const closeModalBtn = document.getElementById('closeModalBtn');
+        const qrTotalVal = document.getElementById('qrTotalVal');
+        const orderIdElem = document.getElementById('orderId');
+        const confirmPayBtn = document.getElementById('confirmPayBtn');
+
+        // Combined Search & Filter Function
+        function filterItems() {
+            const query = searchInput.value.toLowerCase().trim();
+            let visibleCount = 0;
+
+            cards.forEach(card => {
+                const title = card.getAttribute('data-title').toLowerCase();
+                const desc = card.querySelector('.card-desc').textContent.toLowerCase();
+                const category = card.getAttribute('data-category');
+
+                const matchesSearch = title.includes(query) || desc.includes(query);
+                const matchesCategory = selectedCategory === 'All' || category === selectedCategory;
+
+                if (matchesSearch && matchesCategory) {
+                    card.style.display = 'flex';
+                    visibleCount++;
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+
+            if (visibleCount === 0) {
+                noResults.style.display = 'block';
+            } else {
+                noResults.style.display = 'none';
+            }
+        }
+
+        // Live Search Input Handler
+        searchInput.addEventListener('input', filterItems);
+
+        // Category Filter Switch Handler
+        categoryBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                categoryBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                selectedCategory = btn.getAttribute('data-category');
+                filterItems();
+            });
+        });
+
+        // Cart Drawer Controls
+        function openCart() {
+            cartOverlay.classList.add('active');
+        }
+
+        function closeCart() {
+            cartOverlay.classList.remove('active');
+        }
+
+        floatingCartBtn.addEventListener('click', openCart);
+        navOrdersBtn.addEventListener('click', openCart);
+        closeCartBtn.addEventListener('click', closeCart);
+        
+        cartOverlay.addEventListener('click', (e) => {
+            if (e.target === cartOverlay) {
+                closeCart();
+            }
+        });
+
+        // Add to Cart Handlers
+        document.querySelectorAll('.add-to-cart-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const card = e.target.closest('.card');
+                const id = card.getAttribute('data-id');
+                const title = card.getAttribute('data-title');
+                const price = parseFloat(card.getAttribute('data-price'));
+
+                addToCart(id, title, price);
+            });
+        });
+
+        function addToCart(id, title, price) {
+            const existingItem = cart.find(item => item.id === id);
+            if (existingItem) {
+                existingItem.quantity += 1;
+            } else {
+                cart.push({ id, title, price, quantity: 1 });
+            }
+            updateCartUI();
+        }
+
+        function updateQuantity(id, change) {
+            const item = cart.find(item => item.id === id);
+            if (item) {
+                item.quantity += change;
+                if (item.quantity <= 0) {
+                    cart = cart.filter(i => i.id !== id);
+                }
+            }
+            updateCartUI();
+        }
+
+        // Render Cart & Update Totals
+        function updateCartUI() {
+            const totalCount = cart.reduce((sum, item) => sum + item.quantity, 0);
+            cartCountElems.forEach(el => el.textContent = totalCount);
+
+            if (cart.length === 0) {
+                cartItemsContainer.innerHTML = '<div class="empty-cart-msg">Your cart is empty</div>';
+            } else {
+                cartItemsContainer.innerHTML = cart.map(item => `
+                    <div class="cart-item">
+                        <div class="cart-item-info">
+                            <h4>${item.title}</h4>
+                            <p>$${(item.price * item.quantity).toFixed(2)}</p>
+                        </div>
+                        <div class="cart-item-controls">
+                            <button onclick="updateQuantity('${item.id}', -1)">-</button>
+                            <span>${item.quantity}</span>
+                            <button onclick="updateQuantity('${item.id}', 1)">+</button>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            const tax = subtotal * 0.08;
+            const total = subtotal + tax;
+
+            subtotalVal.textContent = `$${subtotal.toFixed(2)}`;
+            taxVal.textContent = `$${tax.toFixed(2)}`;
+            totalVal.textContent = `$${total.toFixed(2)}`;
+        }
+
+        // Checkout & QR Code Modal Logic
+        checkoutBtn.addEventListener('click', () => {
+            if (cart.length === 0) {
+                alert('Your cart is empty!');
+                return;
+            }
+
+            const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            const total = (subtotal * 1.08).toFixed(2);
+            const randomOrderId = Math.floor(100000 + Math.random() * 900000);
+
+            qrTotalVal.textContent = `$${total}`;
+            orderIdElem.textContent = randomOrderId;
+
+            const qrContainer = document.getElementById('qrcode');
+            qrContainer.innerHTML = '';
+
+            const paymentPayload = `foodhub://pay?order=${randomOrderId}&amount=${total}`;
+
+            qrCodeInstance = new QRCode(qrContainer, {
+                text: paymentPayload,
+                width: 160,
+                height: 160,
+                colorDark: '#1e293b',
+                colorLight: '#ffffff',
+                correctLevel: QRCode.CorrectLevel.H
+            });
+
+            closeCart();
+            checkoutModal.classList.add('active');
+        });
+
+        // Close Modal Handlers
+        closeModalBtn.addEventListener('click', () => {
+            checkoutModal.classList.remove('active');
+        });
+
+        checkoutModal.addEventListener('click', (e) => {
+            if (e.target === checkoutModal) {
+                checkoutModal.classList.remove('active');
+            }
+        });
+
+        // Complete Payment Action
+        confirmPayBtn.addEventListener('click', () => {
+            alert('Payment received! Your order is being prepared.');
+            cart = [];
+            updateCartUI();
+            checkoutModal.classList.remove('active');
+        });
+    </script>
+</body>
+</html>
