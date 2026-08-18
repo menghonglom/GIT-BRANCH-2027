@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Profile with Chat & Friends</title>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary-color: #4f46e5;
+            --primary-hover: #4338ca;
+            --success-color: #10b981;
+            --bg-color: #f3f4f6;
+            --card-bg: #ffffff;
+            --text-main: #1f2937;
+            --text-muted: #6b7280;
+            --border-color: #e5e7eb;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        /* Profile Card */
+        .profile-card {
+            background-color: var(--card-bg);
+            border-radius: 16px;
+            width: 100%;
+            max-width: 380px;
+            overflow: hidden;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+            text-align: center;
+            position: relative;
+        }
+
+        /* Cover Header */
+        .profile-cover {
+            height: 120px;
+            background: linear-gradient(135deg, #6366f1, #a855f7);
+        }
+
+        /* Avatar */
+        .avatar-wrapper {
+            position: relative;
+            margin-top: -50px;
+            display: inline-block;
+        }
+
+        .profile-avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            border: 4px solid var(--card-bg);
+            object-fit: cover;
+            background-color: #fff;
+        }
+
+        .status-badge {
+            position: absolute;
+            bottom: 8px;
+            right: 8px;
+            width: 14px;
+            height: 14px;
+            background-color: #22c55e;
+            border: 2px solid var(--card-bg);
+            border-radius: 50%;
+        }
+
+        /* User Details */
+        .profile-info {
+            padding: 16px 24px 0;
+        }
+
+        .user-name {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .verified-icon {
+            color: var(--primary-color);
+            font-size: 16px;
+        }
+
+        .user-handle {
+            font-size: 14px;
+            color: var(--text-muted);
+            margin-bottom: 12px;
+        }
+
+        .user-bio {
+            font-size: 14px;
+            color: var(--text-main);
+            line-height: 1.4;
+            margin-bottom: 20px;
+        }
+
+        /* User Stats */
+        .profile-stats {
+            display: flex;
+            justify-content: space-around;
+            border-top: 1px solid var(--border-color);
+            border-bottom: 1px solid var(--border-color);
+            padding: 16px 0;
+            margin-bottom: 20px;
+        }
+
+        .stat-item h4 {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
+        .stat-item p {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        /* Action Buttons */
+        .profile-actions {
+            padding: 0 24px 24px;
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: #ffffff;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .btn-primary.added {
+            background-color: var(--success-color);
+        }
+
+        .btn-secondary {
+            background-color: #fff;
+            color: var(--text-main);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            background-color: var(--bg-color);
+        }
+
+        /* Messaging Modal Drawer */
+        .chat-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+        }
+
+        .chat-overlay.active {
+            display: flex;
+        }
+
+        .chat-card {
+            background: #fff;
+            border-radius: 16px;
+            width: 90%;
+            max-width: 400px;
+            height: 500px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        }
+
+        .chat-header {
+            padding: 16px;
+            background: var(--card-bg);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .chat-user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .chat-user-info img {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .chat-user-info h4 {
+            font-size: 15px;
+            color: var(--text-main);
+        }
+
+        .chat-user-info p {
+            font-size: 11px;
+            color: var(--success-color);
+        }
+
+        .close-chat {
+            background: none;
+            border: none;
+            font-size: 20px;
+            color: var(--text-muted);
+            cursor: pointer;
+        }
+
+        .chat-body {
+            flex: 1;
+            padding: 16px;
+            background-color: var(--bg-color);
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .chat-bubble {
+            max-width: 75%;
+            padding: 10px 14px;
+            border-radius: 12px;
+            font-size: 13px;
+            line-height: 1.4;
+        }
+
+        .chat-bubble.incoming {
+            background: #ffffff;
+            color: var(--text-main);
+            align-self: flex-start;
+            border-bottom-left-radius: 2px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        }
+
+        .chat-bubble.outgoing {
+            background: var(--primary-color);
+            color: #ffffff;
+            align-self: flex-end;
+            border-bottom-right-radius: 2px;
+        }
+
+        .chat-footer {
+            padding: 12px 16px;
+            background: #fff;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            gap: 8px;
+        }
+
+        .chat-input {
+            flex: 1;
+            padding: 10px 14px;
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            outline: none;
+            font-size: 13px;
+        }
+
+        .chat-input:focus {
+            border-color: var(--primary-color);
+        }
+
+        .send-btn {
+            background: var(--primary-color);
+            color: #fff;
+            border: none;
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+        }
+
+        .send-btn:hover {
+            background: var(--primary-hover);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Main Profile Card -->
+    <div class="profile-card">
+        <!-- Cover Banner -->
+        <div class="profile-cover"></div>
+
+        <!-- Avatar & Status -->
+        <div class="avatar-wrapper">
+            <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80" alt="Profile Picture" class="profile-avatar">
+            <span class="status-badge" title="Online"></span>
+        </div>
+
+        <!-- User Information -->
+        <div class="profile-info">
+            <h2 class="user-name">Alex Morgan <i class="fa-solid fa-circle-check verified-icon"></i></h2>
+            <p class="user-handle">@alexmorgan</p>
+            <p class="user-bio">Product Designer & Tech Enthusiast. Building digital products and enjoying coffee. ☕✨</p>
+        </div>
+
+        <!-- Statistics -->
+        <div class="profile-stats">
+            <div class="stat-item">
+                <h4>128</h4>
+                <p>Orders</p>
+            </div>
+            <div class="stat-item">
+                <h4>4.9</h4>
+                <p>Rating</p>
+            </div>
+            <div class="stat-item">
+                <h4 id="followerCount">2400</h4>
+                <p>Followers</p>
+            </div>
+        </div>
+
+        <!-- Buttons -->
+        <div class="profile-actions">
+            <button class="btn btn-primary" id="addFriendBtn">
+                <i class="fa-solid fa-user-plus" id="addIcon"></i> 
+                <span id="addBtnText">Add Friend</span>
+            </button>
+            <button class="btn btn-secondary" id="openChatBtn">
+                <i class="fa-regular fa-envelope"></i> Message
+            </button>
+        </div>
+    </div>
+
+    <!-- Live Direct Messaging Modal -->
+    <div class="chat-overlay" id="chatOverlay">
+        <div class="chat-card">
+            <div class="chat-header">
+                <div class="chat-user-info">
+                    <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80" alt="Alex Morgan">
+                    <div>
+                        <h4>Alex Morgan</h4>
+                        <p>Online</p>
+                    </div>
+                </div>
+                <button class="close-chat" id="closeChatBtn">&times;</button>
+            </div>
+
+            <div class="chat-body" id="chatBody">
+                <div class="chat-bubble incoming">
+                    Hey there! Thanks for visiting my profile. How can I help you today?
+                </div>
+            </div>
+
+            <div class="chat-footer">
+                <input type="text" id="chatInput" class="chat-input" placeholder="Write a message..." autocomplete="off">
+                <button class="send-btn" id="sendMessageBtn">
+                    <i class="fa-solid fa-paper-plane"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // DOM Elements
+        const addFriendBtn = document.getElementById('addFriendBtn');
+        const addBtnText = document.getElementById('addBtnText');
+        const addIcon = document.getElementById('addIcon');
+        const followerCountElem = document.getElementById('followerCount');
+
+        const openChatBtn = document.getElementById('openChatBtn');
+        const closeChatBtn = document.getElementById('closeChatBtn');
+        const chatOverlay = document.getElementById('chatOverlay');
+        const chatBody = document.getElementById('chatBody');
+        const chatInput = document.getElementById('chatInput');
+        const sendMessageBtn = document.getElementById('sendMessageBtn');
+
+        let isFriend = false;
+        let followerCount = 2400;
+
+        // Add / Remove Friend Action
+        addFriendBtn.addEventListener('click', () => {
+            isFriend = !isFriend;
+
+            if (isFriend) {
+                addFriendBtn.classList.add('added');
+                addBtnText.textContent = 'Friends';
+                addIcon.className = 'fa-solid fa-user-check';
+                followerCount++;
+            } else {
+                addFriendBtn.classList.remove('added');
+                addBtnText.textContent = 'Add Friend';
+                addIcon.className = 'fa-solid fa-user-plus';
+                followerCount--;
+            }
+
+            followerCountElem.textContent = followerCount;
+        });
+
+        // Chat Modal Controls
+        openChatBtn.addEventListener('click', () => {
+            chatOverlay.classList.add('active');
+            chatInput.focus();
+        });
+
+        closeChatBtn.addEventListener('click', () => {
+            chatOverlay.classList.remove('active');
+        });
+
+        chatOverlay.addEventListener('click', (e) => {
+            if (e.target === chatOverlay) {
+                chatOverlay.classList.remove('active');
+            }
+        });
+
+        // Sending Messages Logic
+        function handleSendMessage() {
+            const messageText = chatInput.value.trim();
+            if (messageText === '') return;
+
+            // Render Outgoing Message
+            const outgoingBubble = document.createElement('div');
+            outgoingBubble.className = 'chat-bubble outgoing';
+            outgoingBubble.textContent = messageText;
+            chatBody.appendChild(outgoingBubble);
+
+            chatInput.value = '';
+            chatBody.scrollTop = chatBody.scrollHeight;
+
+            // Simulated Automated Response after 1 second
+            setTimeout(() => {
+                const incomingBubble = document.createElement('div');
+                incomingBubble.className = 'chat-bubble incoming';
+                incomingBubble.textContent = getAutoReply();
+                chatBody.appendChild(incomingBubble);
+                chatBody.scrollTop = chatBody.scrollHeight;
+            }, 1000);
+        }
+
+        // Automated responses
+        function getAutoReply() {
+            const replies = [
+                "Sounds great! Let's touch base soon.",
+                "Thanks for reaching out! I'll get back to you shortly.",
+                "Awesome! Let me know if you need anything else.",
+                "Got it! Thanks for the message."
+            ];
+            return replies[Math.floor(Math.random() * replies.length)];
+        }
+
+        sendMessageBtn.addEventListener('click', handleSendMessage);
+        chatInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                handleSendMessage();
+            }
+        });
+    </script>
+</body>
+</html>
